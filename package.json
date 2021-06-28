@@ -1,0 +1,17 @@
+{
+  "name": "@nprapps/autocomplete-input",
+  "version": "1.0.0",
+  "description": "",
+  "main": "autocomplete-input.umd.js",
+  "module": "autocomplete-input.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup --config"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^2.52.3"
+  }
+}
