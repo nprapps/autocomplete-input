@@ -20,6 +20,10 @@ var styles = `
     display: block;
   }
 
+  :host[hidden] {
+    display: none;
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -59,14 +63,9 @@ var styles = `
 
 var guid = 0;
 
-class AutocompleteInput extends HTMLElement {
-
+export class AutocompleteInput extends HTMLElement {
   constructor() {
     super();
-    var id = guid++;
-    this.value = null;
-    this.attachShadow({ mode: "open" });
-    this.cancelBlur = false;
 
     var autoBind = [
       "onMenuClick",
@@ -77,28 +76,45 @@ class AutocompleteInput extends HTMLElement {
       "onMutation",
       "closeMenu"
     ];
-    autoBind.forEach(f => this[f] = this[f].bind(this));
+    autoBind.forEach((f) => (this[f] = this[f].bind(this)));
 
-    this.container = document.createElement("div");
-    this.shadowRoot.appendChild(this.container);
+    var id = guid++;
 
-    // add style
-    var style = document.createElement("style");
-    style.innerHTML = styles;
-    this.shadowRoot.appendChild(style);
+    this.observer = new MutationObserver(this.onMutation);
+    this.list = null;
+    this.entries = [];
+    this.selectedIndex = -1;
+    this.value = null;
+    this.cancelBlur = false;
 
-    this.container.setAttribute("role", "combobox");
-    this.container.setAttribute("aria-haspopup", "listbox");
-    this.container.setAttribute("aria-owns", `listbox-${id}`);
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot.innerHTML = `
+<style>${styles}</style>
+<div 
+  as="container"
+  role="combobox"
+  aria-haspopup="listbox"
+  aria-owns="listbox-${id}"
+>
+  <input aria-controls="listbox-${id}" aria-activedescendant as="input">
+  <ul 
+    as="menuElement"
+    id="listbox-${id}"
+    role="listbox"
+    class="dropdown">
+  </ul>
+</div>
+    `;
 
-    this.input = document.createElement("input");
-    this.input.setAttribute("aria-controls", `listbox-${id}`);
-    this.input.setAttribute("aria-activedescendant", "");
-    this.container.appendChild(this.input);
+    var tagged = this.shadowRoot.querySelectorAll("[as]");
+    for (var t of tagged) {
+      var name = t.getAttribute("as");
+      this[name] = t;
+    }
 
     var bounce = null;
     // debounce the inputs
-    this.input.addEventListener("input", e => {
+    this.input.addEventListener("input", (e) => {
       if (bounce) {
         clearTimeout(bounce);
       }
@@ -111,16 +127,6 @@ class AutocompleteInput extends HTMLElement {
     this.input.addEventListener("keydown", this.onKeyPress);
     this.input.addEventListener("blur", this.onBlur);
 
-    this.observer = new MutationObserver(this.onMutation);
-    this.list = null;
-    this.entries = [];
-    this.selectedIndex = -1;
-
-    this.menuElement = document.createElement("ul");
-    this.menuElement.id = `listbox-${id}`;
-    this.menuElement.setAttribute("role", "listbox");
-    this.menuElement.classList.add("dropdown");
-    this.container.appendChild(this.menuElement);
     this.menuElement.addEventListener("click", this.onMenuClick);
     this.menuElement.addEventListener("mousedown", this.onMenuTouch);
     this.menuElement.addEventListener("touchstart", this.onMenuTouch);
@@ -144,16 +150,17 @@ class AutocompleteInput extends HTMLElement {
       var updated = this.input.value != v;
       if (updated) {
         this.input.value = v;
-        var changeEvent = new CustomEvent("change", { composed: true, bubbles: true });
+        var changeEvent = new CustomEvent("change", {
+          composed: true,
+          bubbles: true
+        });
         this.dispatchEvent(changeEvent);
       }
     }
   }
 
   static get observedAttributes() {
-    return [
-      "list"
-    ]
+    return ["list"];
   }
 
   attributeChangedCallback(attr, was, is) {
@@ -175,7 +182,6 @@ class AutocompleteInput extends HTMLElement {
           this.updateListEntries();
         }
         break;
-
     }
   }
 
@@ -185,14 +191,16 @@ class AutocompleteInput extends HTMLElement {
 
   updateListEntries() {
     if (!this.list) return;
-    this.entries = Array.from(this.list.children).map(function(option, index) {
-      if (!option.value) return;
-      return {
-        value: option.value,
-        label: option.innerHTML,
-        index
-      }
-    }).filter(v => v);
+    this.entries = Array.from(this.list.children)
+      .map(function (option, index) {
+        if (!option.value) return;
+        return {
+          value: option.value,
+          label: option.innerHTML,
+          index
+        };
+      })
+      .filter((v) => v);
   }
 
   onInput() {
@@ -201,14 +209,14 @@ class AutocompleteInput extends HTMLElement {
     if (!value) return;
     var matcher = new RegExp(value, "i");
     //console.log(this.entries)
-    var matching = this.entries.filter(e => e.label.match(matcher));
+    var matching = this.entries.filter((e) => e.label.match(matcher));
     if (!matching.length) return;
 
     // limit the matches
     matching = matching.slice(0, 100);
-    var found = matching.find(r => r.index == this.selectedIndex);
+    var found = matching.find((r) => r.index == this.selectedIndex);
     if (!found) this.selectedIndex = matching[0].index;
-    var listItems = matching.forEach(entry => {
+    var listItems = matching.forEach((entry) => {
       var li = document.createElement("li");
       li.dataset.index = entry.index;
       li.dataset.value = entry.value;
@@ -223,7 +231,10 @@ class AutocompleteInput extends HTMLElement {
     });
     var position = this.input.getBoundingClientRect();
     var below = window.innerHeight - position.bottom;
-    this.container.classList.toggle("above", below < this.menuElement.offsetHeight);
+    this.container.classList.toggle(
+      "above",
+      below < this.menuElement.offsetHeight
+    );
     this.container.setAttribute("aria-expanded", "true");
   }
 
@@ -235,9 +246,13 @@ class AutocompleteInput extends HTMLElement {
         var current = this.menuElement.querySelector(".selected");
         var newIndex;
         if (current) {
-          var currentIndex = Array.from(this.menuElement.children).indexOf(current);
-          var newIndex = (currentIndex + shift) % this.menuElement.children.length;
-          if (newIndex < 0) newIndex = this.menuElement.children.length + newIndex;
+          var currentIndex = Array.from(this.menuElement.children).indexOf(
+            current
+          );
+          var newIndex =
+            (currentIndex + shift) % this.menuElement.children.length;
+          if (newIndex < 0)
+            newIndex = this.menuElement.children.length + newIndex;
           current.classList.remove("selected");
         } else {
           newIndex = shift == 1 ? 0 : this.menuElement.children.length - 1;
@@ -248,18 +263,18 @@ class AutocompleteInput extends HTMLElement {
           this.input.setAttribute("aria-activedescendant", li.id);
           this.selectedIndex = li.dataset.index;
         }
-      break;
+        break;
 
       case "Enter":
         var chosen = this.entries[this.selectedIndex];
         if (!chosen) return;
         this.setValue(chosen);
-      break;
+        break;
 
       case "Escape":
         this.input.value = "";
         this.closeMenu();
-      break;
+        break;
     }
   }
 
@@ -268,8 +283,18 @@ class AutocompleteInput extends HTMLElement {
       this.input.value = entry.label;
       this.menuElement.innerHTML = "";
       this.value = this.input.value;
-        var changeEvent = new CustomEvent("change", { composed: true, bubbles: true });
+      
+      var changeEvent = new CustomEvent("change", {
+        composed: true,
+        bubbles: true
+      });
       this.dispatchEvent(changeEvent);
+
+      var inputEvent = new CustomEvent("input", {
+        composed: true,
+        bubbles: true
+      });
+      this.dispatchEvent(inputEvent);
     } else {
       this.input.value = "";
     }
@@ -304,13 +329,12 @@ class AutocompleteInput extends HTMLElement {
     this.input.setAttribute("aria-activedescendant", "");
     this.cancelBlur = false;
   }
-
 }
 
 try {
   customElements.define("autocomplete-input", AutocompleteInput);
-} catch(err) {
-  console.log("AutocompleteInput couldn't be (re)defined");  
+} catch (err) {
+  console.log("AutocompleteInput couldn't be (re)defined");
 }
 
 export default AutocompleteInput;

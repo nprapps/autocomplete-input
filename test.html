@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <style>
+    autocomplete-input {
+      max-width: 200px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <autocomplete-input list="pets"></autocomplete-input>
+  <datalist id="pets">
+    <option>Dog</option>
+    <option>Cat</option>
+    <option>Hamster</option>
+    <option>Goldfish</option>
+  </datalist>
+
+  <script type="module">
+  import { AutocompleteInput } from "./autocomplete-input.js";
+
+  console.log(AutocompleteInput);
+
+  var input = document.querySelector("autocomplete-input");
+  input.addEventListener("change", function(e) {
+    console.log(e.type, input.value);
+  });
+  </script>
+</body>
+</html>
