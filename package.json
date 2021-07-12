@@ -1,7 +1,7 @@
 {
   "name": "@nprapps/autocomplete-input",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Autocomplete text input component for the web",
   "main": "autocomplete-input.umd.js",
   "module": "autocomplete-input.js",
   "scripts": {
@@ -11,6 +11,10 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nprapps/autocomplete-input.git"
+  },
   "devDependencies": {
     "rollup": "^2.52.3"
   }
