@@ -1,6 +1,6 @@
 {
   "name": "@nprapps/autocomplete-input",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Autocomplete text input component for the web",
   "main": "autocomplete-input.umd.js",
   "module": "autocomplete-input.js",

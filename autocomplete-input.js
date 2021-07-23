@@ -118,7 +118,7 @@ export class AutocompleteInput extends HTMLElement {
       if (bounce) {
         clearTimeout(bounce);
       }
-      this.bounce = setTimeout(() => {
+      bounce = setTimeout(() => {
         bounce = null;
         this.onInput();
       }, 150);
