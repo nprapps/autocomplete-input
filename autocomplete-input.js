@@ -284,9 +284,9 @@ export class AutocompleteInput extends HTMLElement {
   /**
    *  Event callback: On a key being pressed
    * 
-   *  Up/Down: move between options/suggestions
-   *  Enter: select current option
-   *  Escape: close suggestions
+   *  Up/Down: moves between options/suggestions
+   *  Enter: selects current option
+   *  Escape: closes suggestions
    */
   onKeyPress(e) {
     switch (e.code) {
@@ -330,7 +330,7 @@ export class AutocompleteInput extends HTMLElement {
   }
 
   /**
-   *  Set current suggestion as selection
+   *  Sets current suggestion as selection
    */
   setValue(entry) {
     if (entry) {
@@ -388,7 +388,7 @@ export class AutocompleteInput extends HTMLElement {
   }
 
   /**
-   *  Close the menu
+   *  Closes the menu
    */
   closeMenu() {
     // console.log("close");
